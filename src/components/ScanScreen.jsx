@@ -1,29 +1,93 @@
-import React, { useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 
 const ScanScreen = ({ navigate, showToast, fillPayment }) => {
-    useEffect(() => {
-        // Simulate query detection
-        const timer = setTimeout(() => {
-            showToast('QR Detected');
-            fillPayment('Store');
-            // The App component will handle navigation to payment after this
-        }, 2000);
-        return () => clearTimeout(timer);
-    }, []);
+    const [scanning, setScanning] = useState(true);
+
+    // Mock QR Data - in real app this comes from scanner
+    const mockUPI = {
+        name: 'Rahul Chaube',
+        upiId: 'rahul@easypay',
+        verified: true
+    };
+
+    const handleFileUpload = (e) => {
+        // Simulation of reading QR from file
+        const file = e.target.files[0];
+        if (file) {
+            setScanning(false);
+            showToast('QR Code Analyzed!');
+            setTimeout(() => {
+                fillPayment(mockUPI.name); 
+            }, 1000);
+        }
+    };
 
     return (
-        <div id="screen-scan" className="screen h-full bg-black relative flex flex-col">
-            <div className="absolute top-5 left-5 z-20">
-                <button onClick={() => navigate('home')} className="w-10 h-10 rounded-full bg-white/20 backdrop-blur text-white flex items-center justify-center">
+        <div id="screen-scan" className="screen h-full bg-slate-900 relative flex flex-col font-sans">
+            {/* Header */}
+            <div className="absolute top-0 left-0 w-full p-4 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center z-30 bg-gradient-to-b from-black/50 to-transparent">
+                 <button onClick={() => navigate('home')} className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition">
                     <i className="fa-solid fa-xmark"></i>
                 </button>
-            </div>
-            <div className="h-full w-full flex flex-col items-center justify-center relative flex-1">
-                <div className="relative w-64 h-64 border-2 border-white/30 rounded-3xl overflow-hidden z-10">
-                    <div className="absolute w-full h-1 bg-green-400 shadow-[0_0_15px_#4ade80] animate-[scan_2s_infinite_linear]"></div>
+                <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                     <span className="text-xs font-bold text-white flex items-center gap-2"><i className="fa-solid fa-bolt text-yellow-400"></i> EasyPay Scanner</span>
                 </div>
-                <p className="text-white mt-8 z-10 font-medium">Scanning...</p>
+                <div className="w-10"></div>
             </div>
+
+            {/* Camera Viewport Simulation */}
+            <div className="flex-1 relative overflow-hidden flex flex-col items-center justify-center">
+                {/* Background Video Mockup (CSS Pattern) */}
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=600&auto=format&fit=crop')] bg-cover bg-center opacity-40 blur-sm"></div>
+                
+                {/* Scanner Overlay */}
+                <div className="relative w-72 h-72 rounded-3xl overflow-hidden z-20">
+                     <div className="absolute inset-0 border-[3px] border-white/30 rounded-3xl"></div>
+                     <div className="absolute top-0 left-0 w-16 h-16 border-t-[6px] border-l-[6px] border-indigo-500 rounded-tl-3xl"></div>
+                     <div className="absolute top-0 right-0 w-16 h-16 border-t-[6px] border-r-[6px] border-indigo-500 rounded-tr-3xl"></div>
+                     <div className="absolute bottom-0 left-0 w-16 h-16 border-b-[6px] border-l-[6px] border-indigo-500 rounded-bl-3xl"></div>
+                     <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[6px] border-r-[6px] border-indigo-500 rounded-br-3xl"></div>
+                     
+                     {/* Laser Scan Animation */}
+                     <div className="absolute top-0 w-full h-[2px] bg-indigo-500 shadow-[0_0_20px_#6366f1] animate-[scan_2s_infinite_linear]"></div>
+                </div>
+
+                <div className="z-20 mt-8 space-y-2 text-center">
+                    <h3 className="text-white font-bold text-lg animate-pulse">Scanning QR Code...</h3>
+                    <p className="text-slate-300 text-xs bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">Align QR code within the frame</p>
+                </div>
+            </div>
+
+            {/* Bottom Controls */}
+            <div className="bg-black/80 backdrop-blur-xl p-6 rounded-t-3xl border-t border-white/10 z-30">
+                <div className="grid grid-cols-2 gap-4">
+                    {/* Upload Button */}
+                    <div className="relative">
+                        <button className="w-full py-3 bg-white/10 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/20 transition">
+                            <i className="fa-solid fa-image text-indigo-400"></i> Upload from Gallery
+                        </button>
+                        <input 
+                            type="file" 
+                            accept="image/*"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            onChange={handleFileUpload}
+                        />
+                    </div>
+                    {/* Flash Toggle */}
+                    <button className="w-full py-3 bg-white/10 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/20 transition">
+                         <i className="fa-solid fa-bolt text-yellow-500"></i> Flash On
+                    </button>
+                </div>
+            </div>
+            
+            {/* CSS Animation for scanning line */}
+             <style>{`
+                @keyframes scan {
+                    0% { top: 10%; opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { top: 90%; opacity: 0; }
+                }
+            `}</style>
         </div>
     );
 };
