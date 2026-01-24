@@ -23,6 +23,10 @@ import MyQRScreen from './components/MyQRScreen';
 import SplitBillScreen from './components/SplitBillScreen';
 import NotificationScreen from './components/NotificationScreen';
 import MySavingScreen from './components/MySavingScreen';
+import LoginScreen from './components/auth/LoginScreen';
+import SignupScreen from './components/auth/SignupScreen';
+import PermissionScreen from './components/auth/PermissionScreen';
+import { getUserProfile } from './services/SecureCloud';
 
 // Translation Data
 import { translations } from './data/translations';
@@ -33,7 +37,7 @@ export const LanguageContext = createContext();
 export const useLanguage = () => useContext(LanguageContext);
 
 function App() {
-  const [screen, setScreen] = useState('lock'); // Default to lock screen
+  const [screen, setScreen] = useState('signup'); // Default to signup for new users
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState({ msg: '', show: false });
   const [voiceActive, setVoiceActive] = useState(false);
@@ -49,11 +53,32 @@ function App() {
 
   // User Profile State (Shared between Header and Settings)
   const [userProfile, setUserProfile] = useState({
-    name: "Rahul Chaube",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul"
+    name: "Guest User",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Guest"
   });
 
-  // Shared state for payment flow
+  useEffect(() => {
+    // Check "Local Cloud" for existing user
+    const checkUser = async () => {
+      try {
+        const user = await getUserProfile();
+        if (user) {
+          setUserProfile(user);
+          setScreen('lock'); // User exists, go to lock
+        }
+      } catch (e) {
+        console.error("Cloud Error", e);
+      }
+    };
+    checkUser();
+  }, []);
+
+  const handleLoginSuccess = (user) => {
+    if (user) setUserProfile(user);
+    setScreen('permission');
+  };
+
+  const activeAuthParams = {}; // To pass params if needed
   const [paymentDetails, setPaymentDetails] = useState({ name: '', amount: '' });
   const [navParams, setNavParams] = useState({});
 
@@ -146,12 +171,16 @@ function App() {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} navigate={navigate} />
 
         {/* Screens that have header */}
-        {!['lock', 'scan', 'pin', 'success', 'my-qr', 'pay', 'bank', 'notification', 'chat'].includes(screen) && (
+        {!['lock', 'scan', 'pin', 'success', 'my-qr', 'pay', 'bank', 'notification', 'chat', 'login', 'signup', 'permission'].includes(screen) && (
           <Header navigate={navigate} toggleMenu={() => setSidebarOpen(!sidebarOpen)} activateVoice={activateVoice} userProfile={userProfile} />
         )}
 
         {/* Main Content Area */}
-        <main className={`flex-1 overflow-y-auto no-scrollbar relative bg-slate-50 dark:bg-slate-900 ${['lock', 'scan', 'pin', 'success'].includes(screen) ? '' : 'pb-28 pt-24'} transition-colors duration-300`}>
+        <main className={`flex-1 overflow-y-auto no-scrollbar relative bg-slate-50 dark:bg-slate-900 ${['lock', 'scan', 'pin', 'success', 'login', 'signup', 'permission'].includes(screen) ? '' : 'pb-28 pt-24'} transition-colors duration-300`}>
+          {screen === 'signup' && <SignupScreen navigate={navigate} onLoginSuccess={() => setScreen('permission')} />}
+          {screen === 'login' && <LoginScreen navigate={navigate} onLoginSuccess={handleLoginSuccess} />}
+          {screen === 'permission' && <PermissionScreen onComplete={() => setScreen('home')} />}
+
           {screen === 'lock' && <LockScreen unlockApp={unlockApp} />}
           {screen === 'home' && <HomeScreen navigate={navigate} openScan={openScan} openPaySelect={openPaySelect} fillPayment={fillPayment} checkBalanceInit={checkBalanceInit} showToast={showToast} />}
           {screen === 'notification' && <NotificationScreen navigate={navigate} />}
