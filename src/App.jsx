@@ -47,6 +47,12 @@ function App() {
     return translations[language]?.[key] || translations['en'][key] || key;
   };
 
+  // User Profile State (Shared between Header and Settings)
+  const [userProfile, setUserProfile] = useState({
+    name: "Rahul Chaube",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul"
+  });
+
   // Shared state for payment flow
   const [paymentDetails, setPaymentDetails] = useState({ name: '', amount: '' });
   const [navParams, setNavParams] = useState({});
@@ -141,7 +147,7 @@ function App() {
 
         {/* Screens that have header */}
         {!['lock', 'scan', 'pin', 'success', 'my-qr', 'pay', 'bank', 'notification', 'chat'].includes(screen) && (
-          <Header navigate={navigate} toggleMenu={() => setSidebarOpen(!sidebarOpen)} activateVoice={activateVoice} />
+          <Header navigate={navigate} toggleMenu={() => setSidebarOpen(!sidebarOpen)} activateVoice={activateVoice} userProfile={userProfile} />
         )}
 
         {/* Main Content Area */}
@@ -158,7 +164,7 @@ function App() {
           {screen === 'history' && <HistoryScreen navigate={navigate} />}
           {screen === 'smart-budget' && <SmartBudgetScreen navigate={navigate} />}
           {screen === 'rewards' && <RewardsScreen navigate={navigate} showToast={showToast} />}
-          {screen === 'more' && <MoreScreen navigate={navigate} toggleTheme={toggleTheme} currentTheme={theme} />}
+          {screen === 'more' && <MoreScreen navigate={navigate} toggleTheme={toggleTheme} currentTheme={theme} userProfile={userProfile} setUserProfile={setUserProfile} />}
           {screen === 'split-bill' && <SplitBillScreen navigate={navigate} showToast={showToast} />}
           {screen === 'mysaving' && <MySavingScreen navigate={navigate} />}
 

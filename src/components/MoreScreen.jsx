@@ -1,9 +1,14 @@
 import React, { useState, useRef } from 'react';
 
-const MoreScreen = ({ navigate, toggleTheme, currentTheme }) => {
+const MoreScreen = ({ navigate, toggleTheme, currentTheme, userProfile, setUserProfile }) => {
     const isDark = currentTheme === 'dark';
-    const [userImage, setUserImage] = useState("https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul");
-    const [userName, setUserName] = useState("Rahul Chaube");
+    // Fallback to local state if props are missing (for safety)
+    const [localUserImage, setLocalUserImage] = useState("https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul");
+    const [localUserName, setLocalUserName] = useState("Rahul Chaube");
+
+    const image = userProfile?.avatar || localUserImage;
+    const name = userProfile?.name || localUserName;
+
     const fileInputRef = useRef(null);
 
     const handleImageUpload = (e) => {
@@ -11,7 +16,12 @@ const MoreScreen = ({ navigate, toggleTheme, currentTheme }) => {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setUserImage(reader.result);
+                const newImage = reader.result;
+                if (setUserProfile) {
+                    setUserProfile(prev => ({ ...prev, avatar: newImage }));
+                } else {
+                    setLocalUserImage(newImage);
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -22,6 +32,7 @@ const MoreScreen = ({ navigate, toggleTheme, currentTheme }) => {
             title: 'Financial Tools',
             items: [
                 { icon: 'fa-piggy-bank', color: 'text-pink-500', label: 'My Savings (Emergency)', action: () => navigate('mysaving') },
+                { icon: 'fa-building-columns', color: 'text-blue-600', label: 'Linked Bank Accounts', action: () => navigate('bank') },
             ]
         },
         {
@@ -76,20 +87,25 @@ const MoreScreen = ({ navigate, toggleTheme, currentTheme }) => {
 
                     <div className="relative z-10 flex items-center gap-4">
                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current.click()}>
-                            <img src={userImage} className="w-16 h-16 rounded-full border-2 border-white/20 bg-white/10 object-cover" alt="Profile" />
+                            <img src={image} className="w-16 h-16 rounded-full border-2 border-white/20 bg-white/10 object-cover" alt="Profile" />
                             <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <i className="fa-solid fa-camera text-white text-lg"></i>
                             </div>
                             <div className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 border-2 border-indigo-700 rounded-full"></div>
                         </div>
                         <div className="flex-1">
-                            <h3 className="font-bold text-lg">{userName}</h3>
+                            <h3 className="font-bold text-lg">{name}</h3>
                             <p className="text-indigo-100 text-xs">+91 98765 43210</p>
                             <div className="flex gap-2 mt-2">
                                 <span className="bg-white/20 px-2 py-0.5 rounded-md text-[10px] font-medium backdrop-blur-sm">PRO Member</span>
                                 <span className="bg-emerald-500/20 px-2 py-0.5 rounded-md text-[10px] font-medium text-emerald-100 backdrop-blur-sm">Verified</span>
                             </div>
                         </div>
+
+                        {/* QR Code Action */}
+                        <button onClick={() => navigate('my-qr')} className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 transition shadow-lg border border-white/10">
+                            <i className="fa-solid fa-qrcode text-white"></i>
+                        </button>
 
                         <input
                             type="file"

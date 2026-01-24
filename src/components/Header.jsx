@@ -1,8 +1,10 @@
 import React, { useContext } from 'react';
 import { useLanguage } from '../App';
 
-const Header = ({ toggleMenu, activateVoice, navigate }) => {
+const Header = ({ toggleMenu, activateVoice, navigate, userProfile }) => {
   const { t } = useLanguage();
+
+  const firstName = userProfile?.name ? userProfile.name.split(' ')[0] : 'User';
 
   return (
     <header id="app-header" className="px-4 py-3 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-3xl z-40 absolute left-0 w-full top-0 border-b border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-300">
@@ -19,13 +21,13 @@ const Header = ({ toggleMenu, activateVoice, navigate }) => {
         {/* Profile */}
         <div className="flex items-center gap-2 cursor-pointer" onClick={toggleMenu}>
           <img
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+            src={userProfile?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul"}
             alt="User"
             className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-0.5"
           />
           <div className="hidden min-[400px]:block leading-tight">
             <p className="text-[8px] text-slate-400 font-bold uppercase">Hello,</p>
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Rahul</p>
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{firstName}</p>
           </div>
         </div>
       </div>
