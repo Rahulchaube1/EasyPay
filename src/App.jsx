@@ -1,4 +1,8 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
+import { io } from 'socket.io-client';
+// Set your backend URL here (change if deployed)
+const SOCKET_URL = 'http://localhost:5000';
+let socket;
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
@@ -71,6 +75,23 @@ function App() {
       }
     };
     checkUser();
+
+    // --- Real-time: connect to Socket.IO backend ---
+    socket = io(SOCKET_URL);
+    socket.on('connect', () => {
+      console.log('Connected to real-time backend');
+    });
+    // Listen for transaction updates (demo)
+    socket.on('transaction-update', (data) => {
+      showToast('New transaction: ' + (data?.amount ? `₹${data.amount}` : 'Update!'));
+      // TODO: update state/UI as needed
+    });
+    // Clean up on unmount
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
   }, []);
 
   const handleLoginSuccess = (user) => {

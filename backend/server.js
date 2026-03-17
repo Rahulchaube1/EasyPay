@@ -1,9 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
 const User = require('./models/User');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = 'mongodb://localhost:27017/easype_local_cloud';
 
@@ -66,6 +70,20 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+
+// Socket.IO setup
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    // Example: Listen for a new transaction event
+    socket.on('new-transaction', (data) => {
+        // Broadcast to all clients
+        io.emit('transaction-update', data);
+    });
+
+    // Add more events as needed for chat, notifications, etc.
+});
+
+server.listen(PORT, () => {
     console.log(`🚀 Strong Real-Time Backend running on port ${PORT}`);
 });

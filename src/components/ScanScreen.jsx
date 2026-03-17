@@ -1,7 +1,47 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { BrowserQRCodeReader } from '@zxing/browser';
 
 const ScanScreen = ({ navigate, showToast, fillPayment }) => {
     const [scanning, setScanning] = useState(true);
+    const [cameraError, setCameraError] = useState('');
+    const videoRef = useRef(null);
+    // Camera access and QR scanning
+    useEffect(() => {
+        let stream;
+        let codeReader;
+        if (scanning && videoRef.current) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then((mediaStream) => {
+                    stream = mediaStream;
+                    videoRef.current.srcObject = mediaStream;
+                    videoRef.current.play();
+                    // Start QR scanning
+                    codeReader = new BrowserQRCodeReader();
+                    codeReader.decodeFromVideoElement(videoRef.current, (result, err) => {
+                        if (result) {
+                            setScanning(false);
+                            showToast('QR Code Detected!');
+                            // You can parse result.text for UPI or other QR data
+                            // For demo, just pass the text to fillPayment
+                            setTimeout(() => {
+                                fillPayment(result.text);
+                            }, 1000);
+                        }
+                    });
+                })
+                .catch((err) => {
+                    setCameraError('Unable to access camera: ' + err.message);
+                });
+        }
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (codeReader) {
+                codeReader.reset();
+            }
+        };
+    }, [scanning]);
 
     // Mock QR Data - in real app this comes from scanner
     const mockUPI = {
@@ -35,23 +75,24 @@ const ScanScreen = ({ navigate, showToast, fillPayment }) => {
                 <div className="w-10"></div>
             </div>
 
-            {/* Camera Viewport Simulation */}
+            {/* Camera Viewport */}
             <div className="flex-1 relative overflow-hidden flex flex-col items-center justify-center">
-                {/* Background Video Mockup (CSS Pattern) */}
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=600&auto=format&fit=crop')] bg-cover bg-center opacity-40 blur-sm"></div>
-                
-                {/* Scanner Overlay */}
-                <div className="relative w-72 h-72 rounded-3xl overflow-hidden z-20">
-                     <div className="absolute inset-0 border-[3px] border-white/30 rounded-3xl"></div>
-                     <div className="absolute top-0 left-0 w-16 h-16 border-t-[6px] border-l-[6px] border-indigo-500 rounded-tl-3xl"></div>
-                     <div className="absolute top-0 right-0 w-16 h-16 border-t-[6px] border-r-[6px] border-indigo-500 rounded-tr-3xl"></div>
-                     <div className="absolute bottom-0 left-0 w-16 h-16 border-b-[6px] border-l-[6px] border-indigo-500 rounded-bl-3xl"></div>
-                     <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[6px] border-r-[6px] border-indigo-500 rounded-br-3xl"></div>
-                     
-                     {/* Laser Scan Animation */}
-                     <div className="absolute top-0 w-full h-[2px] bg-indigo-500 shadow-[0_0_20px_#6366f1] animate-[scan_2s_infinite_linear]"></div>
+                {/* Camera Video Feed */}
+                <div className="relative w-72 h-72 rounded-3xl overflow-hidden z-20 bg-black">
+                    {cameraError ? (
+                        <div className="flex items-center justify-center h-full text-red-400 text-center p-4">{cameraError}</div>
+                    ) : (
+                        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted />
+                    )}
+                    {/* Scanner Overlay */}
+                    <div className="absolute inset-0 border-[3px] border-white/30 rounded-3xl pointer-events-none"></div>
+                    <div className="absolute top-0 left-0 w-16 h-16 border-t-[6px] border-l-[6px] border-indigo-500 rounded-tl-3xl pointer-events-none"></div>
+                    <div className="absolute top-0 right-0 w-16 h-16 border-t-[6px] border-r-[6px] border-indigo-500 rounded-tr-3xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 border-b-[6px] border-l-[6px] border-indigo-500 rounded-bl-3xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[6px] border-r-[6px] border-indigo-500 rounded-br-3xl pointer-events-none"></div>
+                    {/* Laser Scan Animation */}
+                    <div className="absolute top-0 w-full h-[2px] bg-indigo-500 shadow-[0_0_20px_#6366f1] animate-[scan_2s_infinite_linear] pointer-events-none"></div>
                 </div>
-
                 <div className="z-20 mt-8 space-y-2 text-center">
                     <h3 className="text-white font-bold text-lg animate-pulse">Scanning QR Code...</h3>
                     <p className="text-slate-300 text-xs bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">Align QR code within the frame</p>
