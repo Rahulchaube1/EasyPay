@@ -112,6 +112,8 @@ Experience the app on your phone (Local Network):
   
   <p>
     <a href="https://github.com/Rahulchaube1">
+      
+    <a href="https://github.com/Mayank556">
       <img src="https://img.shields.io/badge/GitHub-Rahulchaube1-181717?style=social&logo=github" />
     </a>
   </p>
